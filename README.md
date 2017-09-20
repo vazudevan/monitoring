@@ -3,10 +3,14 @@ A bunch of scripts used with Nagios Monitoring
 
 # Scripts and Utilities
 <dl>
-<dt>getvmdetails</dt>
+<dt>GetVMInventory.pl</dt>
 <dd>Collects list of PoweredON VMs from VMWare and outputs comma seperated
 values. The output can be used by other tools to generate / compare nagios
 configs.</dd>
+<dt>GenNagiosConfigforVMs.pl</dt>
+<dd>Generates Nagios host and service configs for VMs, generated from
+**GetVMInventory.pl** Requires host and service templates to pre exist. Can be
+used to auto run with crontab.</dd>
 </dl>
 
 # License: MIT
