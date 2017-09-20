@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # This script collects inventory details required for building nagios host 
-# configuration and outputs comma seperated valuse to stdout.  The output from
+# configuration and outputs comma seperated values to stdout.  The output from
 # this script can be used by another script to build the nagios config files.
 # 
 # Copyright (c) 2017 Vasudevan <vazudevan@gmail.com>
@@ -41,7 +41,7 @@ my $vm_views = Vim::find_entity_views(
 		'runtime.powerState' => 'poweredOn'
 	}
 );
-Util::trace(0, "Name, FQDN, Primary IP, OSFamily, VMPath, Datacenter, VMToolsStatus, FullOSName, AllIPs\n");
+Util::trace(0, "Name,FQDN,Primary IP,OSFamily,VMPath,Datacenter,VMToolsStatus,FullOSName,AllIPs\n");
 
 # Collect inventory and output csv
 foreach my $vm_view (@$vm_views) {
@@ -86,7 +86,7 @@ foreach my $vm_view (@$vm_views) {
     }
 
 
-     Util::trace(0, "$vm_name, $vm_hostname, $ip_address, $os_family, $path, $dc, $tools_status, $fullos, $ip_string\n");
+     Util::trace(0, "$vm_name,$vm_hostname,$ip_address,$os_family,$path,$dc,$tools_status,$fullos,$ip_string\n");
 }
 Util::disconnect();
 
