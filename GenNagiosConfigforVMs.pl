@@ -159,6 +159,7 @@ foreach $row (@$aoh) {
         if ($row->{OS} =~ /red/i) {  
             $config .= "    icon_mage        redhat.png\n";
         }
+        $config .=  "    _vmname      $row->{Name}\n" ;
         $config .=  "}\n";
 
         # Services config
