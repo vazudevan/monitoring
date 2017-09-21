@@ -144,9 +144,9 @@ foreach $row (@$aoh) {
         $host = lc $row->{Name};
         $config = "define host {\n";
         switch($row->{OSFamily}) {
-            case 'windowsGuest' { $config .= "    use          mmodal-windows-host\n" ; }
-            case 'linuxGuest'   { $config .= "    use          mmodal-centos-host\n" ; }
-            else { $config .=  "    use          mmodal-generic-host\n" ; }
+            case 'windowsGuest' { $config .= "    use          vmware-windows-guest\n" ; }
+            case 'linuxGuest'   { $config .= "    use          vmware-centos-guest\n" ; }
+            else { $config .=  "    use          vmware-generic-guest\n" ; }
         }
         $config .=  "    host_name	  $host\n" ;
         $config .=  "    address      $reachable_ip\n" ;
@@ -154,6 +154,9 @@ foreach $row (@$aoh) {
         $config .=  "    notes        $row->{VMPath}\n" ;
         if  (! $reachable) {
             $config .= "    check_command        check-host-by-vcenter\n" 
+        }
+        if ($row->{OS} =~ /red/i) {  
+            $config .= "    icon_mage        redhat.png\n";
         }
         $config .=  "}\n";
 
