@@ -142,6 +142,7 @@ foreach $row (@$aoh) {
         }
         # print the host definitions
         $host = lc $row->{Name};
+        $host =~ s/[\s\(\)]/_/g;
         $config = "define host {\n";
         switch($row->{OSFamily}) {
             case 'windowsGuest' { $config .= "    use          vmware-windows-guest\n" ; }
