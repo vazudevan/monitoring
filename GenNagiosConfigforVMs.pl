@@ -54,15 +54,15 @@ sub HelpMessage {
 }
 
 if ( scalar values %opt < 3 ) { &HelpMessage; exit 22; }
-if (! -e $opt{inventory} && -r _ ) { 
+unless ( -e $opt{inventory} && -r _ ) { 
     print STDERR "File $opt{inventory} not readable or does not exists\n"; 
     exit 2;
 }
-if (! -e $opt{exception} && -r _ ) { 
+unless (! -e $opt{exception} && -r _ ) { 
     print STDERR "File $opt{exception} not readable or does not exists\n";
     exit 2; 
 }
-if (! -e $opt{destination} && -w _ ) { 
+unless ( -e $opt{destination} && -w _ ) { 
     print STDERR "Direcory $opt{destination} not writable or does not exists\n"; 
     exit 2;
 }
@@ -120,9 +120,9 @@ foreach $row (@$aoh) {
             last NAGIOS;
         }
         foreach $ip (@ips) {
-            if (/^\s+address\s+$row->{PrimaryIP}\s+/) { 
+            if (/^\s+address\s+$ip\s+/) { 
                 $monitored = 1; 
-                print STDERR "IP already monitored, not proceeding: $row->{PrimaryIP}\n";
+                print STDERR "IP already monitored, not proceeding: $ip\n";
                 last NAGIOS;
             }
         }
