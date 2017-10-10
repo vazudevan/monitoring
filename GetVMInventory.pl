@@ -27,7 +27,7 @@
 # This file is part of the monitoring bundle that can be found
 # at https://github.com/vazudevan/monitoring
 #
-use warnings;
+use strict;
 use VMware::VIRuntime;
 
 use Data::Validate::IP qw(is_ipv4 is_ipv6);
@@ -35,70 +35,110 @@ Opts::parse();
 Opts::validate();
 Util::connect();
 
-my $vm_views = Vim::find_entity_views(
-	view_type => 'VirtualMachine',
-	filter => {
-		'runtime.powerState' => 'poweredOn'
-	}
-);
-Util::trace(0, "Name,FQDN,Primary IP,OSFamily,VMPath,Datacenter,VMToolsStatus,FullOSName,AllIPs\n");
+# list of fields we want in order of output in csv
+my @fields = qw(dc cluster path name fqdn ipaddress family os );
 
-# Collect inventory and output csv
-foreach my $vm_view (@$vm_views) {
-	my ($vm_name, $vm_hostname, $tools_status, $ip_address, 
-		$path, $dc, $os_family, $fullos, $ip_string);
-	
-	$vm_name = $vm_view->name;
-	if (defined($vm_view->guest->hostName)) {
-		$vm_hostname = $vm_view->guest->hostName;
-		$ip_address = $vm_view->guest->ipAddress;
-		$os_family = $vm_view->guest->guestFamily;
-		$fullos = $vm_view->guest->guestFullName;
-	}
-	if (defined($vm_view->guest->toolsStatus)) {
-		$tools_status = $vm_view->guest->toolsStatus->val;
-	} else {
-		$tools_status = 'Not defined';
-	}
-	#my $path = Util::get_inventory_path($vm_view, Vim->get_vim());
-	my @array = split(/\//, Util::get_inventory_path($vm_view, Vim->get_vim()) );
-    # Split with limit would be better
-	$dc = shift @array;  # Datacenter
-	my @throw = shift @array; # Root folder
-	@throw = pop @array; # vm folder
-	$path = join('/', @array);
-
-	if (defined($vm_view->guest->net)) {
-        my $ifaces = $vm_view->guest->net;
-	    foreach my $h (@$ifaces) {
-            my $ipref = $h->ipAddress;
-            # Lets take only ipv4 valid IPs
-            foreach my $ip (@$ipref) {
-                if (is_ipv4($ip)) {
-                    unless ($ip =~ /169\.254/) {
-                        $ip_string .= "$ip-";
-
-                    }
-                }
-             }
-        }
-        chop $ip_string;
-    }
-
-
-     Util::trace(0, "$vm_name,$vm_hostname,$ip_address,$os_family,$path,$dc,$tools_status,$fullos,$ip_string\n");
+# get dcs
+my $dc_views = Vim::find_entity_views(view_type => 'Datacenter');
+my $header_string;
+foreach (@fields) {
+	$header_string .= "\"" . $_ . "\",";
 }
+chop $header_string;
+print $header_string . "\n";
+
+# for each dc; get cluster
+foreach my $dc_view (@$dc_views) {
+	# get clusters
+    my $ccr = Vim::find_entity_views(view_type => 'ClusterComputeResource',
+    begin_entity => $dc_view);
+	
+	# if cluster exists
+	if ($ccr) {
+		
+		# get vms within each cluster
+		foreach my $cluster (@$ccr) {
+			
+			my $vm_views = Vim::find_entity_views(
+				view_type => 'VirtualMachine',
+				filter => { 'runtime.powerState' => 'poweredOn' },
+				begin_entity => $cluster,
+				properties => ['name','guest'],
+				);
+				output_inventory($vm_views, $dc_view, $cluster );
+		}
+	} else {
+		
+		# Cluster not found, so get vms within DC instead
+		my $vm_views = Vim::find_entity_views(
+			view_type => 'VirtualMachine',
+			filter => { 'runtime.powerState' => 'poweredOn' },
+			begin_entity => $dc_view,
+			properties => ['name','guest'],
+			);
+			output_inventory($vm_views, $dc_view);
+	}
+}
+
 Util::disconnect();
 
-#guest->hostName # full name with FQDN
-#->ipAddress # primary IP
-#->@net->macAddress
-#->@net->ipAddress
-#->@net->network # vlan
-#->toolsRunningStatus
-#->toolsStatus->val
-#->disk->@->capacity
-#->disk->@->diskpath
-#->disk->@->freeSpace
-#->guestFamily
-#->guestFullName
+sub output_inventory {
+	# vmview, dcview, # clusterview
+	my ($vms, $dc, $cluster) = @_;
+
+	foreach my $vm (@$vms) {
+		
+		my (%row, $ip_string, $row_string);
+	
+		$row{'dc'} = $dc->name;
+		$row{'cluster'} = $cluster->name;
+		$row{'name'} = $vm->name;
+
+		if (defined($vm->guest->hostName)) {
+			$row{'fqdn'}= $vm->guest->hostName;
+			#$ip_address = $vm->guest->ipAddress;
+			$row{'family'} = $vm->guest->guestFamily;
+			$row{'os'} = $vm->guest->guestFullName;
+		}
+		$row{'path'} = Util::get_inventory_path($vm, Vim->get_vim());
+
+		if (defined($vm->guest->net)) {
+	        my $ifaces = $vm->guest->net;
+		    foreach my $h (@$ifaces) {
+	            my $ipref = $h->ipAddress;
+	            # Lets take only ipv4 valid IPs
+	            foreach my $ip (@$ipref) {
+	                if (is_ipv4($ip)) {
+	                    unless ($ip =~ /169\.254/) {
+	                        $ip_string .= "$ip,";
+
+	                    }
+	                }
+	             }
+	        }
+	        chop $ip_string;
+			$row{'ipaddress'} = $ip_string;
+	    }
+
+#	    my $mor_host = $vm->runtime->host;
+#	    $row{'host'} = Vim::get_view(mo_ref => $mor_host)->name;
+#    
+#	    my ($devices, $mac_string);
+#	    $devices = $vm->config->hardware->device;
+#	    foreach(@$devices) {
+#	        if ($_->isa('VirtualEthernetCard')) {
+#	            $mac_string .= $_->macAddress . ",";
+#	        }
+#	    }
+#	    chop $mac_string;
+#		$row{'macaddress} = $mac_string;
+
+	foreach my $field (@fields) {
+		$row_string .= "\"" . $row{$field} . "\",";
+	}
+	print $row_string . "\n";
+	
+	}
+}
+
+
