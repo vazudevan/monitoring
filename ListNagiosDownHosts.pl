@@ -42,6 +42,7 @@ sub HelpMessage {
 	print "\tDays.  Lists nagios hosts DOWN since days. default is 3.\n";
 	print "--all\n";
 	print "\t Lists all nagios hosts that are in DOWN state\n\n";
+    exit 0;
 }
 
 my $content = get("http://localhost/nagios/cgi-bin/statusjson.cgi?query=hostlist&hoststatus=down");
