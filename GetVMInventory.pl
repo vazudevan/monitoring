@@ -36,7 +36,7 @@ Opts::validate();
 Util::connect();
 
 # list of fields we want in order of output in csv
-my @fields = qw(dc cluster path name fqdn ipaddress family os );
+my @fields = qw(dc cluster path name fqdn ipaddress family os morid);
 
 # get dcs
 my $dc_views = Vim::find_entity_views(view_type => 'Datacenter');
@@ -93,6 +93,7 @@ sub output_inventory {
 		$row{'dc'} = $dc->name;
 		$row{'cluster'} = $cluster->name;
 		$row{'name'} = $vm->name;
+		$row{'morid'} = $vm->get_property('mo_ref')->value;
 
 		if (defined($vm->guest->hostName)) {
 			$row{'fqdn'}= $vm->guest->hostName;
