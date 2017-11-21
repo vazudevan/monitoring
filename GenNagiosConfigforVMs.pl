@@ -53,6 +53,7 @@ sub HelpMessage {
     print "\tDestination folder where nagios configuration files to be created\n";
 	print "  --skipfolder\n";
 	print "Virtual folder Name: VMs from this folder will be ignored\n\n";
+	exit exit;
 }
 
 if ( scalar values %opt < 3 ) { &HelpMessage; exit 22; }
@@ -171,6 +172,7 @@ foreach $row (@$aoh) {
             $config .= "    icon_mage        redhat.png\n";
         }
         $config .=  "    _vmname      $row->{name}\n" ;
+		$config .=  "    _morid       $row->{morid}\n" ;
 		if ($row->{cluster}) { $config .= "    _vmcluster        $row->{cluster}\n" ;}
 		$config .=  "    _allips      $row->{ipaddress}\n" ;
         $config .=  "}\n";
