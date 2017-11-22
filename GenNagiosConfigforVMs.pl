@@ -165,9 +165,9 @@ foreach $row (@$aoh) {
         $config .=  "    address      $reachable_ip\n" ;
         if ($row->{fqdn}) { $config .= "    alias        $row->{fqdn}\n" ;}
         $config .=  "    notes        $row->{path}\n" ;
-        if  (! $reachable) {
+        #if  (! $reachable) {
             $config .= "    check_command        check-host-by-vcenter\n" ;
-        }
+			#}
         if ($row->{os} =~ /red/i) {  
             $config .= "    icon_mage        redhat.png\n";
         }
@@ -178,6 +178,13 @@ foreach $row (@$aoh) {
         $config .=  "}\n";
 
         # Services config
+        $config .=  "define service {\n";
+        $config .=  "    host_name            $host\n";
+        $config .=  "    use                  ping-vm\n";
+        $config .=  "    service_description  Ping\n";
+        $config .=  "    #contact_groups      contact-group\n";
+        $config .=  "}\n";
+		
         $config .=  "define service {\n";
         $config .=  "    host_name            $host\n";
         $config .=  "    use                  cpu-usage-by-vc\n";
