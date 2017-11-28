@@ -35,7 +35,7 @@
 # at https://github.com/vazudevan/monitoring
 #
 
-uuse Text::CSV qw( csv );
+use Text::CSV qw( csv );
 use Net::Ping;
 use Switch;
 use Getopt::Long;
@@ -61,7 +61,7 @@ unless ( -e $opt{inventory} && -r $opt{inventory} ) {
     print STDERR "File $opt{inventory} not readable or does not exists\n"; 
     exit 2;
 }
-unless (! -e $opt{exception} && -r $opt{exception} ) { 
+unless ( -e $opt{exception} && -r $opt{exception} ) { 
     print STDERR "File $opt{exception} not readable or does not exists\n";
     exit 2; 
 }
@@ -169,7 +169,7 @@ foreach $row (@$aoh) {
             $config .= "    check_command        check-host-by-vcenter\n" ;
 			#}
         if ($row->{os} =~ /red/i) {  
-            $config .= "    icon_mage        redhat.png\n";
+            $config .= "    icon_image        redhat.png\n";
         }
         $config .=  "    _vmname      $row->{name}\n" ;
 		$config .=  "    _morid       $row->{morid}\n" ;
