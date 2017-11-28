@@ -51,6 +51,8 @@ if [ ${1} != "unknown.ip" ]; then
 	if [[ ${DoPing} == "true" ]]; then
 		icmp_result=$($ping $1)
 		icmp_return=$?
+	else
+		icmp_return=1
 	fi
 	if [[ ${icmp_return} -eq 0 ]]; then
 		echo ${icmp_result}
